@@ -12,10 +12,8 @@ module.exports = (req, res, next) => {
             message: "You are not authorized to access this api"
         })
     }
-    
   }catch(error){
     return res.status(401).json({
-      status:false,
       message: "Authentication Failed"
     })
   }

@@ -24,8 +24,7 @@ exports.validate = (method) => {
                 .isLength({ min:5,max: 15 }).withMessage('User Name must have minimum 5 character and maximum 15 character'),
             check('role').exists().trim()
                 .matches(/^(user|admin)$/).withMessage('Role field is not valid')
-                .not().isEmpty().withMessage('Role field should not be empty')
-                
+                .not().isEmpty().withMessage('Role field should not be empty')   
         ]
         break;
       }
@@ -37,6 +36,13 @@ exports.validate = (method) => {
             check('password').exists()
                 .matches(/(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/)
                 .not().isEmpty()
+          ]
+          break;
+      }
+      case 'parenthesis':{
+          return [
+              check('parenthesis').trim()
+              .matches(/^(\{|\}|\(|\)|\[|\])*$/)
           ]
           break;
       }

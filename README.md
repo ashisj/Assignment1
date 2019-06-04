@@ -37,7 +37,7 @@
     ```
     npm start
     ```
-3. create auth.js file for api call inside api/routes
+3. Create auth.js file for api call inside api/routes
 
     Inside auth.js
     ```
@@ -67,6 +67,7 @@
     1. http://localhost:3000/api/auth/register
     2. http://localhost:3000/api/auth/login
     ```
+
 4. To handle file not found error or server error below code should be added.
     In app.js
     ```
@@ -111,6 +112,16 @@
     ```
     npm i body-parser express-validator
     ```
+
+    Inside app.js add
+    ```
+    const bodyParser = require('body-parser');
+    // parse application/x-www-form-urlencoded
+    app.use(bodyParser.urlencoded({ extended: false }))
+    
+    // parse application/json
+    app.use(bodyParser.json())
+    ```
     add userModel.js file inside api/models
 
     Inside userModel.js
@@ -123,7 +134,7 @@
         email     : {type:String,required:true},
         password  : {type:String,required:true},
         dob       : {type:Date,required:true},
-        userName  : {type:String,required:true},
+        username  : {type:String,required:true},
         role      : {type:String,enum: ['admin', 'user']}
     })
 
@@ -142,7 +153,7 @@
     
     Inside authController.js
     ```
-    var User = require("../models/userModel");
+    var User = require('../models/userModel');
     const { validationResult } = require('express-validator/check');
 
     exports.register = (req,res,next)=>{
@@ -156,13 +167,13 @@
                 role:''
             }
             errors.array().forEach((value)=>{
-                errorResult[value.param] = value.msg
+                errorResult[value.param] = value.msg;
             })
             res.status(400).json({message:errorResult});
         } else{
-            User.findOne({$or:[{'email':req.body.email},{'username':req.body.username}]},function(err,user){
+            User.findOne({$or:[{'email':req.body.email},{'username':req.body.username}]},(err,user) => {
                 if(err){
-                    return next(err)
+                    return next(err);
                 }
                 if(user){
                     res.status(409).json({message:'Email or UserName is already exists.'});
@@ -174,13 +185,13 @@
                     newUser.username = req.body.username;
                     newUser.role = req.body.role;
                     newUser.save(function(error,result){
-                        if(ererrorr){
+                        if(error){
                             return next(error);
                         }
                         res.status(202).json({message:"Registration successfull"});
-                    })
+                    });
                 }
-            })
+            });
         }
     };
     ```
@@ -212,8 +223,7 @@
                         .isLength({ min:5,max: 15 }).withMessage('User Name must have minimum 5 character and maximum 15 character'),
                     check('role').exists().trim()
                         .matches(/^(user|admin)$/).withMessage('Role field is not valid')
-                        .not().isEmpty().withMessage('Role field should not be empty')
-                        
+                        .not().isEmpty().withMessage('Role field should not be empty')  
                 ]
                 break;
             }
@@ -230,9 +240,17 @@
     router.post('/register',InputValidator.validate('register'),AuthControllers.register); 
     ```
 
-    test the api using postman with x-www-form-url-encoded format
+    Test the api using postman with x-www-form-url-encoded format
     ```
     http://localhost:4000/api/auth/register
+
+    in post method with x-www-form-urlencoded format having below field
+
+        email = "email must be a valid mail like a@a.com"
+        password = "must have 1 number, 1 capital letter, 1 small letter and minimum 6 digit"
+        dob = "date must be a valid date and greater than todays date"
+        username = "can contain special character(_,-,@),alphbets,numbers and length between 5 to 15"
+        role = "either user or admin"
     ```
 
 7. For Login
@@ -261,13 +279,14 @@
     const jwt = require('jsonwebtoken');
 
     exports.login = (req,res,next) => {
-        const errors = validationResult(req);  
+        const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(4001).json({message:'Authentication Failed'});
+            return res.status(401).json({message:'Authentication Failed'});
         }
-        User.findOne({$or:[{'email': req.body.username},{'username':req.body.username}]},function(err,user){
+
+        User.findOne({$or:[{'email': req.body.username},{'username':req.body.username}]},(err,user) => {
             if(err){
-              return next(err)
+                return next(err)
             }
             if(user){
                 if(!user.validPassword(req.body.password)){
@@ -288,7 +307,7 @@
                 }
             } else {
                 res.status(401).json({message:'Authentication Failed'})
-            }   
+            }
         });
     };
     ```
@@ -298,27 +317,214 @@
     router.post('/login',InputValidator.validate('login'),AuthControllers.login);
     ```
 
-8. For Authorize and admin Authorize  middleware
-    add checkAuth.js and checkAdminAuth.js inside middleware folder
+    Test the api using postman with x-www-form-url-encoded format
+    ```
+    http://localhost:4000/api/auth/login
+
+    In post method with x-www-form-urlencoded format having below field
+        username = "pass email address or username"
+        password = "valid password"
+    ```
+
+8. For Authorize user  
+    add checkAuth.js inside middleware folder
 
     In checkAuth.js
     ```
     const jwt = require('jsonwebtoken');
 
     module.exports = (req, res, next) => {
-    try{
-        const token = req.headers.authorization;
-        const decode = jwt.verify(token, process.env.JWT_PRIVATE_KEY);
-        req.user = decode;
-        next();
-    }catch(error){
-        return res.status(401).json({
-            status:false,
-            message: "Authentication Failed"
+        try{
+            const token = req.headers.authorization;
+            const decode = jwt.verify(token, process.env.JWT_PRIVATE_KEY);
+            req.user = decode;
+            next();
+        }catch(error){
+            return res.status(401).json({
+                message: "Authentication Failed"
             })
         }
     }
     ```
+9. For Balanced api
+
+    Create balancedModel.js inside api/model folder
+
+    In balancedModel.js
+    ```
+    var mongoose = require('mongoose');
+    var Schema = mongoose.Schema;
+
+    var balancedSchema = new Schema({
+        message   :  {type:String,default:''},
+        username  : {type:String,required:true},
+        attempts  : {type:Number,default:0},
+    })
+
+    module.exports = mongoose.model('balanced',balancedSchema,'balanced');
+    ```
+
+    To check valid parenthesis add balancedParenthesisCheck.js inside api/services folder
+    ```
+    exports.isBalanced = (parenthesis) => {
+    let isBalanced = true;
+    let stack = []
+    inputArray = parenthesis.split('');
+    if(inputArray[0] == '}' || inputArray[0] == ')' || inputArray[0] == ']'){
+        return false
+    }
+    
+    for(i=0;i<inputArray.length;i++){
+        switch(inputArray[i]){
+          case '{' :
+          case '[' :
+          case '(' :
+                stack.push(inputArray[i]);
+                break;
+          case '}':
+            if(stack[stack.length-1] == '{'){
+                stack.pop();
+            } else {
+                isBalanced = false;
+            }
+            break;
+          case ']':
+            if(stack[stack.length-1] == '['){
+                stack.pop();
+            } else {
+                isBalanced = false;
+            }
+            break;
+          case ')':
+            if(stack[stack.length-1] == '('){
+                stack.pop();
+            } else {
+                isBalanced = false;
+            }
+            break;
+          default:
+                break;
+        }
+        
+        if(!isBalanced){
+          break
+        }
+      }
+
+      if(stack.length){
+            return false;
+      }
+      return isBalanced; 
+    }
+    ``` 
+
+    To check for the parenthesis input value add below code insode api/services/inputValidator.js
+    ```
+    case 'parenthesis':{
+          return [
+              check('parenthesis').trim()
+              .matches(/^(\{|\}|\(|\)|\[|\])*$/)
+          ]
+          break;
+    }
+    ```
+    Create balancedController.js file inside api/controllers folder
+
+    In balancedController.js
+    ```
+    
+    const balancedCheck = require('../services/balancedParenthesisCheck');
+
+    var Balanced = require('../models/balancedModel');
+    const { validationResult } = require('express-validator/check');
+
+    exports.balanced = (req,res,next) => {
+        let errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.json({message:"Invalid input"})
+        }
+        let isBalanced = balancedCheck.isBalanced(req.body.parenthesis);
+        let message = ''
+        if(isBalanced){
+            message = 'Success'
+        }
+        Balanced.findOne({'username':req.user.username},(error,data) => {
+            if(error){
+                return next(error)
+            }
+            if(data){
+                data.message = message;
+                data.attempts = data.attempts += 1;
+
+                data.save((err,result) => {
+                    if(err){
+                        return next(err)
+                    }
+                    res.status(200).json({
+                        username : result.username,
+                        message  : result.message,
+                        attempts : result.attempts
+                    })
+                });
+            } else {
+                let newbalanced = new Balanced();
+                newbalanced.username = req.user.username;
+                newbalanced.message = message;
+                newbalanced.attempts = 1;
+
+                newbalanced.save((err,result) => {
+                    if(err){
+                        return next(err)
+                    }
+                    res.status(200).json({
+                        username : result.username,
+                        message  : result.message,
+                        attempts : result.attempts
+                    })
+                });
+            }
+        })
+    }
+    ```
+
+    Create balancedRoute.js file inside api/route
+    
+    In balancedRoute.js
+    ```
+    const express = require('express');
+    const router = express.Router();
+
+    const BalancedControllers = require('../controllers/balancedController');
+    const InputValidator = require('../services/inputValidator');
+
+    router.use(InputValidator.validate('parenthesis'));
+
+    router.post('/',BalancedControllers.balanced);
+    module.exports = router;
+    ```
+
+    Import and create the end point for balance route in the app.js file
+    ```
+    const balancedApi = require('./api/routes/balancedRoute');
+    //to check authorized user
+    const authorizationCheck = require('./middleware/checkAuth');
+    //end point to balance route
+    app.use('/balanced',authorizationCheck,balancedApi);
+    ```
+
+    To check for api
+    ```
+    In post mode
+    http://localhost:4000/balanced
+
+    with header 
+    Authorization = JWT token
+    and body in x-www-form-urlencoded format
+    parenthesis = valid parenthesis data 
+    ```
+10. For Admin Authorization
+
+    add checkAdminAuth.js inside middleware folder
 
     In checkAdminAuth.ja
     ```
@@ -336,14 +542,65 @@
                     message: "You are not authorized to access this api"
                 })
             }
-            
         }catch(error){
             return res.status(401).json({
-            status:false,
-            message: "Authentication Failed"
+                message: "Authentication Failed"
             })
         }
     }
     ```
 
-    
+11. For admin functionality 
+
+    add admin.js file inside api/route folder
+
+    In admin.js
+    ```
+    const express = require('express');
+    const router = express.Router();
+
+    const adminController = require('../controllers/adminController');
+
+    router.get('/',adminController.getAllRegisteredUser);
+
+    router.delete('/username/:username',adminController.deleteUser);
+
+    module.exports = router;
+    ```
+
+    add admin end point in app.js file
+    ```
+    const adminApi = require('./api/routes/admin');
+
+    //To check admin access
+    const adminAuthorizationCheck = require('./middleware/checkAdminAuth');
+
+    app.use('/api/admin',adminAuthorizationCheck,adminApi);
+    ```
+
+    Create adminController.js file inside api/controllers
+    ```
+    var User = require('../models/userModel');
+
+    exports.getAllRegisteredUser = (req,res,next) => {
+        User.find({},{_id:0,email:1,username:1,dob:1,role:1},(err,users) => {
+            if(err){
+                return next(err)
+            }
+            res.status(200).json({registeredUsers:users});
+        })
+    }
+
+    exports.deleteUser = (req,res,next) => {
+        User.remove({$or:[{email:req.params.username},{username:req.params.username}]},(err,user) => {
+            if(err){
+                return next(err)
+            }
+            if(user.deletedCount){
+                return res.status(200).json({message : req.params.username + ' is deleted successfully' })
+            } else {
+                return res.status(200).json({message : req.params.username + ' is not present' })
+            }
+        })
+    }
+    ```

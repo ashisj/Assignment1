@@ -11,15 +11,15 @@ exports.register = (req,res,next)=>{
           dob:'',
           username:'',
           role:''
-      }
+      };
       errors.array().forEach((value)=>{
-          errorResult[value.param] = value.msg
+          errorResult[value.param] = value.msg;
       })
       res.status(400).json({message:errorResult});
   } else{
-    User.findOne({$or:[{'email':req.body.email},{'username':req.body.username}]},function(err,user){
+    User.findOne({$or:[{'email':req.body.email},{'username':req.body.username}]},(err,user) => {
       if(err){
-        return next(err)
+        return next(err);
       }
       if(user){
         res.status(409).json({message:'Email or UserName is already exists.'});
@@ -35,20 +35,19 @@ exports.register = (req,res,next)=>{
             return next(error);
           }
           res.status(202).json({message:"Registration successfull"});
-        })
+        });
       }
-    })
+    });
   }
 };
 
 exports.login = (req,res,next) => {
   const errors = validationResult(req);
-  console.log(errors.array());
-    
   if (!errors.isEmpty()) {
       return res.status(401).json({message:'Authentication Failed'});
   }
-  User.findOne({$or:[{'email': req.body.username},{'username':req.body.username}]},function(err,user){
+
+  User.findOne({$or:[{'email': req.body.username},{'username':req.body.username}]},(err,user) => {
     if(err){
       return next(err)
     }
