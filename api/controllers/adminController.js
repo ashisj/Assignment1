@@ -6,7 +6,7 @@ exports.getAllRegisteredUser = (req,res,next) => {
             return next(err)
         }
         res.status(200).json({registeredUsers:users});
-    })
+    });
 }
 
 exports.deleteUser = (req,res,next) => {

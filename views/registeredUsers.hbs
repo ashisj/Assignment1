@@ -1,0 +1,24 @@
+{{> header}}
+<br><br><br><br><br>
+<div class="container">
+  <table class="table table-dark">
+    <thead>
+      <tr>
+        <th>Email</th>
+        <th>Date of birth</th>
+        <th>role</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each users}}
+      <tr>
+        <td>{{this.email}}</td>
+        <td>{{this.dob}}</td>
+        <td>{{this.role}}</td>
+        <td><a href="#">Delete</a> </td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>

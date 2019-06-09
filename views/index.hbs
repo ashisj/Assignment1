@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="authenticationCard">
+        <h2>Registration & Login</h2>
+        <div class="card">
+          <div class="card-header">
+            <ul class="nav">
+              <li class="nav-item">
+                <a class="nav-link active" data-toggle="tab" href="#login">Login</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" href="#register">Register</a>
+              </li>
+            </ul>
+          </div>
+          <div class="card-body">
+             <div class="tab-content">
+               <div id="login" class="container tab-pane active">
+                 <form>
+                   <div id="loginMessage"></div>
+                   <div class="form-group">
+                     <label for="loginUserName">Email/Username:</label>
+                     <input type="text" class="form-control" id="loginUserName" placeholder="Enter username" required>
+                   </div>
+                   <div class="form-group">
+                     <label for="loginPwd">Password:</label>
+                     <input type="password" class="form-control" id="loginPwd" placeholder="Enter password" required>
+                   </div>
+                   <button type="submit" class="btn btn-primary" id="loginBtn">Log in</button>
+                 </form>
+               </div>
+
+               <div id="register" class="container tab-pane tab-fade">
+                 <div id="registrationMessage"></div>
+                 <form>
+                   <div class="form-group">
+                     <label for="registerEmail">Email:</label>
+                     <input type="text" class="form-control" id="registerEmail" placeholder="Enter email" required>
+                   </div>
+                   <div class="form-group">
+                     <label for="registerPwd">Password:</label>
+                     <input type="password" class="form-control" id="registerPwd" placeholder="Enter password" required>
+                   </div>
+                   <div class="form-group">
+                     <label for="registerUserName">Username:</label>
+                     <input type="text" class="form-control" id="registerUserName" placeholder="Enter username" required>
+                   </div>
+                   <div class="form-group">
+                     <label for="dob">Date of birth:</label>
+                     <input type="text" class="form-control" id="registerDob" placeholder="Enter date of birth" required>
+                   </div>
+                   <div class="form-group">
+                     <label for="role">Role:</label>
+                     <select class="form-control" id="registerRole">
+                       <option value="user">User</option>
+                       <option value="admin">Admin</option>
+                     </select>
+                   </div>
+                   <button type="submit" class="btn btn-primary" id="registerBtn">Register</button>
+                 </form>
+               </div>
+             </div>
+           </div>
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript" src="/authScript.js"></script>
+  </body>
+</html>

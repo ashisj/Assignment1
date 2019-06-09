@@ -66,6 +66,7 @@ exports.login = (req,res,next) => {
             expiresIn: 3000
           }
         );
+        res.cookie('token',token);
         res.status(200).json({token:token,message:"success"});
       }
     } else {
